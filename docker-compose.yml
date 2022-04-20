@@ -1,0 +1,40 @@
+version: "3.7"
+
+# Will use the hostname when talking between services on the same network
+services:
+  
+  hubmap-auth:
+    build: 
+      context: ./hubmap-psc-nginx
+    # Build the image with name and tag
+    # Exit with an error message containing err if HUBMAP_AUTH_VERSION is unset or empty in the environment
+    image: hubmap-psc-nginx:${HUBMAP_PSC_NGINX_VERSION:?err}
+    hostname: hubmap-psc-nginx
+    container_name: hubmap-psc-nginx
+    # Avoid accidentally creating zombie processes
+    init: true
+    # Specifying a restart policy to avoid downtime
+    restart: always
+    environment:
+      - HOST_GID=${HOST_GID:-1000}
+      - HOST_UID=${HOST_UID:-1000}
+    # Map host machine port 80, 443, and 8443 to container ports
+    # Only root can listen on ports below 1024, we use higher-numbered ports
+    # since nginx is running under non-root user hubmap
+    ports:
+      - "80:8080"
+      - "443:4430"
+    networks:
+      - hubmap_psc
+    volumes:
+      # Make the uwsgi/nginx log files generated on container available through from host
+      - "./hubmap-psc-nginx/log:/usr/src/app/log"
+      # favicon.ico
+      - "./hubmap-psc-nginx/nginx/html:/usr/share/nginx/html"
+      # Mount ssl certificates from host to container
+      - "/etc/pki/nginx:/etc/pki/nginx"
+
+networks:
+  # This is the network created by gateway to enable communicaton between multiple docker-compose projects
+  hubmap_psc:
+    external: true

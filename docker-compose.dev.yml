@@ -1,0 +1,9 @@
+version: "3.7"
+
+services:
+  
+  hubmap-psc-nginx:
+    volumes:
+      # Mount conf.d-dev to the nginx conf.d on container
+      - "./hubmap-psc-nginx/nginx/conf.d-dev:/etc/nginx/conf.d"
+      
